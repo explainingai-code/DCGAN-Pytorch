@@ -8,94 +8,38 @@ from tqdm import tqdm
 from torch.optim import Adam
 import sys 
 sys.path.append("./")
-from dataset.mnist_dataset import MnistDataset
 from torch.utils.data import DataLoader
+from model.dcgans import Generator, Discriminator
+import torchvision.transforms as transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Configurations used for creating
 # and training GAN
-LATENT_DIM = 64
-# For colored mnist change below to 3
-IM_CHANNELS = 1
-IM_PATH = 'data/train/images'
-IM_EXT = 'png'
-IM_SIZE = (28, 28)
-BATCH_SIZE = 128
-NUM_EPOCHS = 50
+LATENT_DIM = 100
+IM_CHANNELS = 3
+IM_PATH = "./data/img_align_celeba/"
+# IM_EXT = 'png'
+IM_SIZE = (64, 64)
+BATCH_SIZE = 16
+NUM_EPOCHS = 10
 NUM_SAMPLES = 225
 NROWS = 15
-##################
+N_workers = 4
+####################################
 
 
-class Generator(nn.Module):
-    r"""
-    Generator for this gan is list of layers where each layer has the following:
-    1. Linear Layer
-    2. BatchNorm
-    3. Activation(Tanh for last layer else LeakyRELU)
-    The linear layers progressively increase dimension
-    from LATENT_DIM to IMG_H*IMG_W*IMG_CHANNELS
-    """
-    def __init__(self):
-        super().__init__()
-        self.latent_dim = LATENT_DIM
-        self.img_size = IM_SIZE
-        self.channels = IM_CHANNELS
-        activation = nn.LeakyReLU()
-        layers_dim = [self.latent_dim, 128, 256, 512, self.img_size[0] * self.img_size[1] * self.channels]
-        self.layers = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(layers_dim[i], layers_dim[i + 1]),
-                nn.BatchNorm1d(layers_dim[i + 1]) if i != len(layers_dim) - 2 else nn.Identity(),
-                activation if i != len(layers_dim) - 2 else nn.Tanh()
-            )
-            for i in range(len(layers_dim) - 1)
-        ])
-    
-    def forward(self, z):
-        batch_size = z.shape[0]
-        out = z.reshape(-1, self.latent_dim)
-        for layer in self.layers:
-            out = layer(out)
-        out = out.reshape(batch_size, self.channels, self.img_size[0], self.img_size[1])
-        return out
-
-
-class Discriminator(nn.Module):
-    r"""
-    Discriminator mimicks the design of generator
-    only reduces dimensions progressive rather than increasing.
-    From IMG_H*IMG_W*IMG_CHANNELS it reduces all the way to 1 where
-    the last value is the probability discriminator thinks that
-    given image is real(closer to 1 if real else closer to 0)
-    """
-    def __init__(self):
-        super().__init__()
-        self.img_size = IM_SIZE
-        self.channels = IM_CHANNELS
-        activation = nn.LeakyReLU()
-        layers_dim = [self.img_size[0] * self.img_size[1] * self.channels, 512, 256, 128, 1]
-        self.layers = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(layers_dim[i], layers_dim[i + 1]),
-                nn.LayerNorm(layers_dim[i + 1]) if i != len(layers_dim) - 2 else nn.Identity(),
-                activation if i != len(layers_dim) - 2 else nn.Identity()
-            )
-            for i in range(len(layers_dim) - 1)
-        ])
-    
-    def forward(self, x):
-        out = x.reshape(-1, self.img_size[0] * self.img_size[1] * self.channels)
-        for layer in self.layers:
-            out = layer(out)
-        return out
-    
 
 def train():
     # Create the dataset
-    mnist = MnistDataset('train', im_path=IM_PATH, im_ext=IM_EXT)
-    mnist_loader = DataLoader(mnist, batch_size=BATCH_SIZE, shuffle=True)
+    dataset = torchvision.datasets.ImageFolder(root=IM_PATH, transform=transforms.Compose([
+                               transforms.Resize(IM_SIZE),
+                               transforms.CenterCrop(IM_SIZE),
+                               transforms.ToTensor(),
+                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                           ]))
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=N_workers)
+    
     
     # Instantiate the model
     generator = Generator().to(device)
@@ -108,7 +52,7 @@ def train():
     optimizer_discriminator = Adam(discriminator.parameters(), lr=1E-4, betas=(0.5, 0.999))
     
     # Criterion is bcewithlogits hence no sigmoid in discriminator
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = torch.nn.BCELoss()
 
     # Run training
     steps = 0
@@ -118,13 +62,13 @@ def train():
         discriminator_losses = []
         mean_real_dis_preds = []
         mean_fake_dis_preds = []
-        for im in tqdm(mnist_loader):
-            real_ims = im.float().to(device)
+        for im in tqdm(dataloader):
+            real_ims = im[0].float().to(device)
             batch_size = real_ims.shape[0]
             
             # Optimize Discriminator
             optimizer_discriminator.zero_grad()
-            fake_im_noise = torch.randn((batch_size, LATENT_DIM), device=device)
+            fake_im_noise = torch.randn((batch_size, LATENT_DIM, 1,1), device=device)
             fake_ims = generator(fake_im_noise)
             real_label = torch.ones((batch_size, 1), device=device)
             fake_label = torch.zeros((batch_size, 1), device=device)
@@ -143,7 +87,7 @@ def train():
             
             # Optimize Generator
             optimizer_generator.zero_grad()
-            fake_im_noise = torch.randn((batch_size, LATENT_DIM), device=device)
+            fake_im_noise = torch.randn((batch_size, LATENT_DIM, 1,1), device=device)
             fake_ims = generator(fake_im_noise)
             disc_fake_pred = discriminator(fake_ims)
             gen_fake_loss = criterion(disc_fake_pred.reshape(-1), real_label.reshape(-1))
@@ -184,7 +128,7 @@ def infer(generated_sample_count, generator):
     :param generator: Generator model with trained parameters
     :return:
     """
-    fake_im_noise = torch.randn((NUM_SAMPLES, LATENT_DIM), device=device)
+    fake_im_noise = torch.randn((NUM_SAMPLES, LATENT_DIM, 1, 1), device=device)
     fake_ims = generator(fake_im_noise)
     ims = torch.clamp(fake_ims, -1., 1.).detach().cpu()
     ims = (ims + 1) / 2
