@@ -17,6 +17,7 @@ Once downloaded, extract the zip inside the ``/data`` folder. he resulting direc
         -> 537394.jpg
             ...
 ```
+![Training Data](images/train_data.png)
 
 # Quickstart
 * ```git clone https://github.com/explainingai-code/DCGAN-Pytorch.git``
@@ -32,3 +33,4 @@ During training of GAN the following output will be saved
 
 During inference every 50 steps the following output will be saved
 * Sampled image grid for in ```samples/*.png``` 
+
