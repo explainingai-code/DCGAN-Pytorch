@@ -34,3 +34,6 @@ During training of GAN the following output will be saved
 During inference every 50 steps the following output will be saved
 * Sampled image grid for in ```samples/*.png``` 
 
+![Training Data](images/output.png)
+
+
