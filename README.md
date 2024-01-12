@@ -4,7 +4,7 @@ DCGAN Implementation in PyTorch
 This repository implements training and inference methods of DCGAN on mnist as well as celeb faces dataset
 
 [Paper](https://arxiv.org/pdf/1511.06434.pdf) </br>
-[Video on DCGAN](https://youtu.be/672YP9k6Xws) </br>
+[Video on DCGAN](https://www.youtube.com/watch?v=672YP9k6Xws) </br>
 
 ## Sample Output after training on MNIST
 <img src="https://github.com/explainingai-code/DCGAN-Pytorch/assets/144267687/725b9a71-2090-4a66-880e-1fe79a21ee31" width="200">
