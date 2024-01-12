@@ -7,10 +7,11 @@ This repository implements training and inference methods of DCGAN on mnist as w
 [Video on DCGAN](https://youtu.be/672YP9k6Xws) </br>
 
 ## Sample Output after training on MNIST
-<img src="https://github.com/explainingai-code/GANs-Pytorch/assets/144267687/4e1fd994-6ec0-4e21-aeee-6b054e72ddab" width="200">
-<img src="https://github.com/explainingai-code/GANs-Pytorch/assets/144267687/f4bbdafa-a8e2-4a8f-b063-4a4bc00c76fa" width="200">
+<img src="https://github.com/explainingai-code/DCGAN-Pytorch/assets/144267687/725b9a71-2090-4a66-880e-1fe79a21ee31" width="200">
+<img src="https://github.com/explainingai-code/DCGAN-Pytorch/assets/144267687/61c7d44a-5e4b-46d1-9807-52778441a626" width="200">
 
 ## Sample Output after training on CelebFaces Dataset
+<img src="https://github.com/explainingai-code/DCGAN-Pytorch/assets/144267687/a07d2a5f-04a1-49f9-b3bc-0577b68b0565" width="200">
 
 ## Data preparation
 For setting up the mnist dataset:
