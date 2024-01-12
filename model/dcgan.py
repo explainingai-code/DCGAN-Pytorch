@@ -59,7 +59,7 @@ class Discriminator(nn.Module):
         super().__init__()
         self.img_size = im_size
         self.im_channels = im_channels
-        activation = nn.LeakyReLU(0.2)
+        activation = nn.LeakyReLU()
         layers_dim = [self.im_channels] + conv_channels + [1]
         self.layers = nn.ModuleList([
             nn.Sequential(
