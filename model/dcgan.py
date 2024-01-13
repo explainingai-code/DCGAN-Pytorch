@@ -66,7 +66,8 @@ class Discriminator(nn.Module):
                 nn.Conv2d(layers_dim[i], layers_dim[i + 1],
                           kernel_size=kernels[i],
                           stride=strides[i],
-                          padding=paddings[i]),
+                          padding=paddings[i],
+                          bias=False if i != 0 else True),
                 nn.BatchNorm2d(layers_dim[i + 1]) if i != len(layers_dim) - 2 and i != 0 else nn.Identity(),
                 activation if i != len(layers_dim) - 2 else nn.Identity()
             )
