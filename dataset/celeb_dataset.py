@@ -30,7 +30,7 @@ class CelebDataset(Dataset):
         """
         assert os.path.exists(im_path), "images path {} does not exist".format(im_path)
         ims = []
-        for fname in glob.glob(os.path.join(im_path, '*.{}'.format(self.im_ext))):
+        for fname in glob.glob(os.path.join(im_path, '**/*.{}'.format(self.im_ext)), recursive=True):
             ims.append(fname)
         print('Found {} images'.format(len(ims)))
         return ims
