@@ -52,17 +52,3 @@ class CelebDataset(Dataset):
         return im_tensor
 
 
-# if __name__ == '__main__':
-#     mnist = CelebDataset(im_path='/Users/tusharkumar/Downloads/img_align_celeba')
-#     dataloader = DataLoader(mnist, batch_size=225)
-#     for data in dataloader:
-#         import torchvision
-#         from torchvision.utils import make_grid
-#
-#         data = (data + 1) / 2
-#         grid = make_grid(data, nrow=15)
-#         img = torchvision.transforms.ToPILImage()(grid)
-#
-#         img.save('dataset_sample.png')
-#         img.close()
-#         exit()
